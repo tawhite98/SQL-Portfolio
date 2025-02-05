@@ -1,0 +1,45 @@
+--"This project utilized data from the Netflix database stored at https://www.db-fiddle.com/f/pfsdrKi9cgCDp4Wwb77AF/0"
+
+--Using the PostgreSQL dialect, write a join to determine what the names of each director for each show. 
+
+SELECT People.show_id,Titles.title AS NameofShow,People.director
+FROM "netflix_titles_info"Titles
+LEFT JOIN "netflix_people"People
+ON Titles.show_id= People.show_id;
+
+-- How many tv shows in total were released in 2021?
+
+SELECT count(*) 
+FROM "netflix_titles_info"
+WHERE "type"='TV Show'AND "release_year"= 2021;
+
+--When was the most recent batch of movies added to this database?
+
+SELECT max(date(date_added))
+FROM "netflix_titles_info"
+WHERE "type"='Movie';
+
+--In what year did the most movies and tv shows get release?
+
+SELECT COUNT("type") AS Total_Productions,release_year
+FROM "netflix_titles_info"
+GROUP BY release_year
+ORDER BY Total_Productions desc;
+
+--Who directed and starred in the movie My Little Pony?
+
+SELECT Titles.title,People.director,People.cast
+FROM "netflix_people"People
+JOIN "netflix_titles_info"Titles
+ON People.show_id = Titles.show_id
+WHERE Titles.title= 'My Little Pony: A New Generation';
+
+
+-- What are the directors for each movie release in 2020 and order them in alphabetical order?
+
+SELECT People.director, Titles.title, Titles.show_id
+FROM "netflix_titles_info"Titles
+JOIN "netflix_people"People
+ON Titles.show_id = People.show_id
+WHERE Titles.release_year=2020 AND Titles.type='Movie'
+ORDER BY People.director asc;
