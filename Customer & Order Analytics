@@ -1,5 +1,4 @@
-SELECT*FROM BIT_d.JanSales;
-SELECT*FROM BIT_d.customers;
+--In this SQL, I'm querying a database with multiple tables in it to quantify statistics about customer and order data. 
 
 --How many many unique orders were placed in February?
 SELECT COUNT(distinct orderID) FROM BIT_d.FebSales
