@@ -40,4 +40,9 @@ WHERE JAN.Quantity>2
 AND length(orderid) = 6
 AND orderid <> 'Order ID';
 
-
+--List all the products sold in New York City in March, and include how many of each were sold.
+SELECT Product, SUM(Quantity) AS TotalSold
+FROM BIT_d.MarSales
+WHERE location like'%New York City%'
+GROUP BY Product
+ORDER BY TotalSold asc;
