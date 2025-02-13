@@ -46,3 +46,40 @@ FROM BIT_d.MarSales
 WHERE location like'%New York City%'
 GROUP BY Product
 ORDER BY TotalSold asc;
+
+-- Which locations in Texas received at least 3 orders in March, and how many orders did they each receive?
+SELECT distinct location, COUNT (orderID) AS TotalOrders
+FROM BIT_d.MarSales
+WHERE location like '%TX%'
+AND length(orderID)=6
+AND orderID <>'Order ID'
+GROUP BY location
+HAVING TotalOrders>=3;
+
+-- How many of each type of batteries were sold in January?
+SELECT Product, SUM(Quantity) AS TotalSold
+FROM BIT_d.JanSales
+WHERE Product like'%Batteries%'
+GROUP BY Product;
+
+-- What was the average amount spent per account in January?
+SELECT SUM(Quantity*price) / COUNT(cust.acctnum)
+FROM BIT_d.JanSales Jan
+LEFT JOIN BIT_d.customers cust
+ON Jan.orderID = cust.order_id
+WHERE length(orderid) = 6 
+AND orderid <> 'Order ID';
+
+-- What was the average quantity of products purchased per account in January? 
+SELECT SUM(Quantity)/ COUNT(cust.acctnum)
+FROM BIT_d.JanSales Jan
+LEFT JOIN BIT_d.customers cust
+ON Jan.orderID=cust.order_id
+WHERE length(orderID)=6
+AND orderID <>'Order ID';
+
+-- Which product brought in the most revenue in February and how much revenue did it bring in total?
+SELECT Product, SUM(Quantity*price)
+FROM BIT_d.FebSales
+GROUP BY Product
+ORDER BY SUM(Quantity*price) desc LIMIT 1;
