@@ -1,0 +1,44 @@
+SELECT*FROM BIT_d.JanSales;
+SELECT*FROM BIT_d.customers;
+
+--How many many unique orders were placed in February?
+SELECT COUNT(distinct orderID) FROM BIT_d.FebSales
+WHERE length (orderID)=6 AND orderID <> 'Order ID';
+
+--How many of those orders were for an USB-C charging cable?
+SELECT COUNT(distinct orderID) FROM BIT_d.FebSales
+WHERE Product='USB-C Charging Cable' AND length (orderID)=6 AND orderID <> 'Order ID';
+
+--Select the customer account numbers for all the orders that were placed in January.
+SELECT distinct acctnum FROM BIT_d.customers
+INNER JOIN BIT_d.JanSales 
+ON customers.order_id = JanSales.orderID
+WHERE length(orderid) = 6 AND orderid <> 'Order ID';
+
+--Which product was the cheapest one sold in February, and what was the price?
+SELECT product, min(price)
+FROM BIT_d.FebSales
+GROUP BY product, price
+ORDER BY price ASC LIMIT 1;
+
+--What is the total revenue for each product sold in February?
+SELECT Product, SUM(Quantity)*price AS Total_revenue
+FROM BIT_d.FebSales
+GROUP BY Product;
+
+--Which products were sold in March at 602 Pine St, New York City, NY 10001, how many of each were sold, and what was the total revenue?
+SELECT Product, SUM(Quantity) AS Amount_purchased, SUM(quantity)*price AS Revenue
+FROM BIT_d.MarSales
+WHERE location ='602 Pine St, New York City, NY 10001'
+GROUP BY Product;
+
+--How many customers ordered more than 2 products at a time in January, and what was the average amount spent for those customers?
+SELECT COUNT(distinct cust.acctnum) AS TotalCustomers, AVG(quantity*price) AS AverageSpent
+FROM BIT_d.JanSales JAN
+LEFT JOIN BIT_d.customers Cust
+ON JAN.orderID = Cust.order_id
+WHERE JAN.Quantity>2
+AND length(orderid) = 6
+AND orderid <> 'Order ID';
+
+
