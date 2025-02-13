@@ -1,4 +1,5 @@
 --In this SQL, I'm querying a database with multiple tables in it to quantify statistics about customer and order data. 
+--The database I am using is from https://www.dropbox.com/scl/fi/vd10nx4bo5soq7xg78sdg/BIT_DB?rlkey=0yh592o2nl1766n8l6hod5uc9&e=1&dl=0 
 
 --How many many unique orders were placed in February?
 SELECT COUNT(distinct orderID) FROM BIT_d.FebSales
