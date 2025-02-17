@@ -1,0 +1,213 @@
+--Here is a Data Analysis of this dataset: https://cdn.fs.teachablecdn.com/dRmwOLQsS22FVFbXfh3x
+
+
+-- General Employee-Related Questions:
+
+--How many employees report to each manager (i.e., by ReportsTo)?
+
+SELECT E.FirstName, E.LastName, E.Title, COUNT(M.EmployeeID) AS EmployeesReporting
+FROM DMS.employees E
+LEFT JOIN DMS.employees M
+ON E.EmployeeId = M.ReportsTo
+WHERE E.Title Like '%Manager%'
+GROUP BY E.EmployeeId;
+
+--What is the average tenure of employees reporting to each manager?
+
+SELECT M.FirstName, M.LastName, M.Title, 
+COUNT(E.EmployeeID) AS EmployeesReporting, 
+AVG(current_date - E.HireDate) AS AverageTenure
+FROM employees E
+LEFT JOIN employees M ON E.ReportsTo = M.EmployeeId
+WHERE M.Title LIKE '%Manager%'
+GROUP BY M.EmployeeId;
+
+--Which employees have the highest number of customers assigned to them?
+
+SELECT EMP.FirstName, EMP.LastName, COUNT(CUST.CustomerId) AS CustomerCount
+FROM DMS.employees EMP
+LEFT JOIN DMS.customers CUST
+ON EMP.EmployeeId = CUST.SupportRepId
+GROUP BY EMP.FirstName, EMP.LastName
+HAVING COUNT(CUST.CustomerId) > 0
+ORDER BY CustomerCount DESC;
+
+--Which sales agent made the most dollars in sales in 2010?
+
+SELECT emp.FirstName, emp.LastName, SUM(inv.Total) AS TotalSales
+FROM DMS.employees emp
+LEFT JOIN DMS.customers cust
+ON emp.EmployeeId = cust.SupportRepId
+INNER JOIN DMS.invoices inv
+ON cust.CustomerId = inv.CustomerId
+WHERE emp.Title = 'Sales Support Agent'
+AND inv.InvoiceDate like '%2010%'
+AND inv.Total>0
+GROUP BY emp.FirstName, emp.LastName
+ORDER BY TotalSales desc LIMIT 1;
+
+
+--Customer-Related Questions:
+
+--Which genres are the most popular among customers based on purchase history?
+
+SELECT G.Name, COUNT(T.GenreId) AS total_count
+FROM DMS.genres G
+INNER JOIN DMS.tracks T
+ON G.GenreId = T.GenreId
+INNER JOIN DMS.invoice_items I
+ON T.TrackId = I.TrackId
+INNER JOIN DMS.invoices inv
+ON I.InvoiceId = inv.InvoiceId
+INNER JOIN DMS.customers cust
+ON inv.CustomerId = cust.CustomerId
+GROUP BY G.Name
+ORDER BY total_count desc;
+
+--What is the average spent of each customer?
+
+SELECT cust.CustomerId, ROUND(AVG(inv.Total), 2) AS AVG_spent
+FROM DMS.customers cust
+LEFT JOIN DMS.invoices inv
+ON cust.CustomerId = inv.CustomerId
+WHERE inv.Total>0
+GROUP BY cust.CUstomerId;
+
+--How many customers are in the US and how many are not?
+
+SELECT COUNT(CustomerId) AS TotalCustomers,
+CASE WHEN Country = 'USA' THEN 'USA Customers'
+ELSE 'Non-USA Customers'
+END AS COUNTRY
+FROM DMS.customers
+GROUP BY
+CASE WHEN Country = 'USA' THEN 'USA Customers'
+END;
+
+--Find the Invoices of customers who are from Brazil. 
+
+SELECT cust.FirstName, cust.LastName, inv.InvoiceId, inv.InvoiceDate, inv.BillingCountry
+FROM DMS.customers cust
+LEFT JOIN DMS.invoices inv
+ON cust.CustomerId = inv.CustomerId
+WHERE inv.BillingCountry = 'Brazil'
+GROUP BY cust.FirstName, cust.LastName
+ORDER BY inv.InvoiceId asc;
+
+
+--Invoice-Related Questions: 
+
+--Which products albums are being sold the most based on invoice line items?
+
+SELECT A.AlbumId, A.Title, COUNT(I.InvoiceId) AS TotalSold
+FROM DMS.albums A
+INNER JOIN DMS.tracks T
+ON A.AlbumId = T.AlbumId
+INNER JOIN DMS.invoice_items I
+ON T.TrackId = I.TrackId
+GROUP BY A.AlbumId, A.Title
+ORDER BY TotalSold desc;
+
+--Show all the Tracks, and include the Album name, Media type, and Genre.
+
+SELECT T.Name AS TrackName, A.Title AS AlbumTitle, G.Name AS Genre, M.Name AS MediaType
+FROM DMS.albums A
+LEFT JOIN DMS.tracks T
+ON A.AlbumId = T.AlbumId
+LEFT JOIN DMS.genres G
+ON T.GenreId = G.GenreId
+LEFT JOIN DMS.media_types M
+ON T.MediaTypeId = M.MediaTypeId
+GROUP BY T.Name, A.Title, G.Name, M.Name;
+
+
+--Artist and Album-Related Questions:
+
+--Which artists have the highest number of tracks purchased?
+
+SELECT ar.Name, COUNT(i.TrackId) AS TracksPurchased
+FROM DMS.artists ar
+INNER JOIN DMS.albums al
+ON ar.ArtistId = al.ArtistId
+INNER JOIN DMS.tracks t
+ON al.AlbumId = t.AlbumId
+INNER JOIN DMS.invoice_items i
+ON t.TrackId = i.TrackId
+GROUP BY ar.Name
+ORDER BY TracksPurchased desc LIMIT 5;
+
+--How do sales of albums from different genres compare?
+
+SELECT G.Name, ROUND(SUM(I.Total),2) AS TotalSales
+FROM DMS.genres G
+INNER JOIN DMS.tracks T
+ON G.GenreId = T.GenreId
+INNER JOIN DMS.albums A
+ON T.AlbumId = A.AlbumId
+INNER JOIN DMS.invoice_items inv
+ON T.TrackId = inv.TrackId
+INNER JOIN dms.invoices I
+ON inv.InvoiceId = I.InvoiceId
+GROUP BY G.Name
+ORDER BY TotalSales desc;
+
+
+--Track & Playlist-Related Questions:
+
+--Which tracks are in the highest number of playlists?
+
+SELECT t.TrackId, t.Name, COUNT(pt.PlaylistId) AS PlaylistCount
+FROM DMS.tracks t
+INNER JOIN DMS.playlist_track pt ON t.TrackId = pt.TrackId
+GROUP BY t.TrackId, t.Name
+ORDER BY PlaylistCount DESC;
+
+--Which playlists contain tracks from Iron Maiden?
+
+SELECT p.PlaylistId, p.Name
+FROM DMS.playlists p
+INNER JOIN DMS.playlist_track pt
+ON p.PlaylistId = pt.PlaylistId
+INNER JOIN DMS.tracks t
+ON pt.TrackId = t.TrackId
+INNER JOIN DMS.albums a
+ON t.AlbumId = a.AlbumId
+INNER JOIN DMS.artists art
+ON a.ArtistID = art.ArtistId
+WHERE art.Name= 'Iron Maiden'
+GROUP BY p.PlaylistID;
+
+
+--Other Questions:
+
+--What was the average sale in each billing country?
+
+SELECT BillingCountry, ROUND(AVG(Total), 2) as AVG_sales
+FROM DMS.invoices
+GROUP BY BillingCountry
+ORDER BY AVG_sales asc;
+
+--Jane Peacock had the most sales as a sales agent. How many distinct customers in each billing country did she assist with completing a sale?
+
+SELECT I.BillingCountry, COUNT( DISTINCT I.CustomerId) AS CustomerCount
+FROM DMS.invoices I
+LEFT JOIN DMS.customers C
+ON I.CustomerId = C.CustomerId
+LEFT JOIN DMS.employees E
+ON C.SupportRepId = E.EmployeeId
+WHERE E.LastName = 'Peacock'
+AND E.FirstName = 'Jane'
+GROUP BY BillingCountry;
+
+--Which sales support employee had the lowest sales in 2010?
+
+SELECT emp.FirstName, emp.LastName, ROUND(SUM(Inv.Total), 2) as 'Total Sales' 
+FROM DMS.employees emp
+INNER JOIN DMS.customers cust 
+ON cust.SupportRepId = emp.EmployeeId
+INNER JOIN DMS.invoices inv 
+ON inv.CustomerId = cust.CustomerId
+WHERE emp.Title = 'Sales Support Agent' 
+AND inv.InvoiceDate LIKE '2010%' 
+GROUP BY emp.FirstName, emp.LastName
+ORDER BY (round(sum(Inv.Total), 2))  ASC LIMIT 1;
