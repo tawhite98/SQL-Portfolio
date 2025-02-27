@@ -1,0 +1,64 @@
+--Analysis of wildfire data for the periods of 1992-2015 compiled from US federal, state, and local reporting systems.
+--Data referenced from: https://www.kaggle.com/datasets/rtatman/188-million-us-wildfires
+
+Select * FROM Fires;
+
+--How many fires occurred each year?
+SELECT FIRE_YEAR, COUNT(DISTINCT FIRE_NAME) AS Total_Fires
+FROM Fires
+GROUP BY FIRE_YEAR
+ORDER BY FIRE_YEAR;
+
+--What caused the most fires?
+SELECT STAT_CAUSE_DESCR, COUNT(DISTINCT FIRE_NAME) AS Total_Fires
+FROM Fires
+GROUP BY STAT_CAUSE_DESCR
+ORDER BY Total_Fires DESC;
+
+--In what states have the most fires occured?
+SELECT STATE, COUNT(DISTINCT FIRE_NAME) AS Total_Fires
+FROM Fires
+GROUP BY STATE
+ORDER BY Total_Fires DESC LIMIT 5;
+
+--What is the average fire size per fire class?
+SELECT FIRE_SIZE_CLASS, ROUND(AVG(FIRE_SIZE), 2) AS Avg_Fire_Size
+FROM Fires
+GROUP BY FIRE_SIZE_CLASS;
+
+--If fire size is greater than 10 then it is "minor", greater than 100 then list as "small", if greater than 1,000 then list as "medium", if greater than 10,000 then list as "large", if greater than 100,000 then list as Extreme, else "unsignificant".
+SELECT FIRE_NAME, FIRE_YEAR, STATE, STAT_CAUSE_DESCR, FIRE_SIZE,
+CASE WHEN FIRE_SIZE >= 100000 THEN 'extreme'
+WHEN FIRE_SIZE >= 10000 THEN 'large'
+WHEN FIRE_SIZE >= 1000 THEN 'medium'
+WHEN FIRE_SIZE >= 100 THEN 'small'
+WHEN FIRE_SIZE >= 10 THEN 'minor'
+ELSE 'unsignificant'
+END AS Fire_Scale
+FROM Fires
+GROUP BY FIRE_NAME
+ORDER BY FIRE_SIZE ASC;
+
+--the total amount of each fire_scale (unsignificant, minor, small, large, extreme) for each year?
+SELECT FIRE_YEAR AS YEAR,
+COUNT(CASE WHEN FIRE_SIZE >= 100000 THEN 1 END) AS Extreme_fires,
+COUNT(CASE WHEN FIRE_SIZE >= 10000 AND FIRE_SIZE < 1000000 THEN 1 END) AS Large_fires,
+COUNT(CASE WHEN FIRE_SIZE >= 1000 AND FIRE_SIZE < 100000 THEN 1 END) AS Medium_fires,
+COUNT(CASE WHEN FIRE_SIZE >= 100 AND FIRE_SIZE < 10000 THEN 1 END) AS Small_fires,
+COUNT(CASE WHEN FIRE_SIZE >= 10 AND FIRE_SIZE < 1000 THEN 1 END) AS Minor_fires,
+COUNT(CASE WHEN FIRE_SIZE < 10 THEN 1 END) AS Unsignificant
+FROM Fires
+GROUP BY FIRE_YEAR
+ORDER BY FIRE_YEAR ASC;
+
+--List all the fires in CA including what the name was, the year, and the cause. Order by largest to smallest fires.
+SELECT FIRE_NAME, FIRE_YEAR, STAT_CAUSE_DESCR, FIRE_SIZE
+FROM Fires
+WHERE STATE = 'CA'
+ORDER BY FIRE_SIZE DESC;
+
+--List the average amount of fires and size of fires in each state.
+SELECT STATE, ROUND(AVG(FIRE_SIZE),2) AS AVG_size,
+COUNT(FIRE_NAME) / (SELECT COUNT(DISTINCT STATE) FROM Fires) AS AVG_fires
+FROM Fires
+GROUP BY STATE;
